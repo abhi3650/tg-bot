@@ -1,0 +1,29 @@
+services:
+  - type: worker
+    name: abtech-movie-extractor
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: SESSION_STRING
+        sync: false
+      - key: SOURCE_GROUP
+        sync: false
+      - key: MOVIE_BOT_USERNAME
+        sync: false
+      - key: RECEIVER_BOT
+        sync: false
+      - key: DELIVERY_BOT
+        sync: false
+      - key: TARGET_CHANNEL
+        sync: false
+      - key: SESSION_WINDOW
+        value: "160"
+      - key: INTER_CLICK_DELAY
+        value: "2.5"
+      - key: BOT_REPLY_TIMEOUT
+        value: "10.0"
