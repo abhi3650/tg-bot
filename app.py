@@ -71,6 +71,29 @@ async def main():
         log.info(f"✅ Logged in as: {me.first_name} (@{me.username})")
         log.info(f"Session window: {cfg.session_window}s")
 
+        # ── Pre-resolve all peers ──────────────────────────────────────────────
+        # With in_memory=True (session string), Pyrogram has no local peer cache.
+        # We MUST call get_chat() on every entity before sending messages to it,
+        # otherwise resolve_peer() raises PeerIdInvalid.
+        log.info("Pre-resolving peers...")
+        peers = [
+            cfg.source_group,
+            cfg.movie_bot_username,
+            cfg.receiver_bot,
+            cfg.delivery_bot,
+            cfg.target_channel,
+        ]
+        for peer in peers:
+            try:
+                chat = await client.get_chat(peer)
+                log.info(f"  ✅ Resolved: {peer} → {chat.title or chat.username or chat.id}")
+            except Exception as e:
+                log.error(f"  ❌ Could not resolve peer '{peer}': {e}")
+                log.error("Check that this username/ID is correct and your account is a member.")
+                return
+        log.info("All peers resolved. Starting pipeline...")
+        # ─────────────────────────────────────────────────────────────────────
+
         # Run all pipeline workers concurrently
         await asyncio.gather(
             scraper.run(client, cfg, session_start),

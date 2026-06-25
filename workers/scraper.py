@@ -24,10 +24,19 @@ log = get("scraper")
 async def _get_movie_list_message(client: Client, cfg: Config) -> Message | None:
     """Send 'mkv' to the group and wait for the movie bot's reply."""
     log.info(f"Sending 'mkv' to {cfg.source_group}")
-    await client.send_message(cfg.source_group, "mkv")
+
+    # Use the resolved chat object to avoid PeerIdInvalid with in_memory sessions
+    try:
+        chat = await client.get_chat(cfg.source_group)
+        chat_id = chat.id
+    except Exception as e:
+        log.error(f"Cannot resolve SOURCE_GROUP '{cfg.source_group}': {e}")
+        return None
+
+    await client.send_message(chat_id, "mkv")
     await asyncio.sleep(4)
 
-    async for msg in client.get_chat_history(cfg.source_group, limit=15):
+    async for msg in client.get_chat_history(chat_id, limit=15):
         sender = msg.from_user or msg.sender_chat
         username = getattr(sender, "username", "") or ""
         if username.lower() == cfg.movie_bot_username.lstrip("@").lower():
