@@ -16,16 +16,25 @@ from pathlib import Path
 STATE_FILE = Path("data/state.json")
 
 
+_DEFAULTS = {
+    "current_page": 1,
+    "current_movie_index": 0,
+    "done": False,
+    "total_processed": 0,
+}
+
+
 def load() -> dict:
+    state = dict(_DEFAULTS)  # always start with full defaults
     if STATE_FILE.exists():
-        with open(STATE_FILE) as f:
-            return json.load(f)
-    return {
-        "current_page": 1,
-        "current_movie_index": 0,
-        "done": False,
-        "total_processed": 0,
-    }
+        try:
+            with open(STATE_FILE) as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                state.update(data)   # overlay saved values on top of defaults
+        except (json.JSONDecodeError, OSError):
+            pass  # corrupted file → start fresh
+    return state
 
 
 def save(state: dict):
